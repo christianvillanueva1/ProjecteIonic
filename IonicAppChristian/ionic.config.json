@@ -1,0 +1,7 @@
+{
+  "name": "IonicAppChristian",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
