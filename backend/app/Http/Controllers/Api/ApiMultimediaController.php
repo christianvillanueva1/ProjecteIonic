@@ -21,12 +21,12 @@ class ApiMultimediaController extends Controller
         ]);
 
         $file = $request->file('file');
-        $fileData = file_get_contents($file->getRealPath());
+        $path = $file->store('multimedia', 'public'); // Desa el fitxer al directori 'public'
 
         $multimedia = Multimedia::create([
             'user_id' => Auth::id(),
             'file_type' => $file->getClientMimeType(),
-            'file_path' => base64_encode($fileData),
+            'file_path' => $path, // Guarda el camí del fitxer relativ al directori public
         ]);
 
         return response()->json([
@@ -34,7 +34,7 @@ class ApiMultimediaController extends Controller
             'data' => [
                 'id' => $multimedia->id,
                 'file_type' => $multimedia->file_type,
-                'user_id' => $multimedia->user_id,
+                'file_path' => asset('storage/' . $multimedia->file_path), // Envia el camí públic del fitxer
             ]
         ], 201);
     }
@@ -44,12 +44,24 @@ class ApiMultimediaController extends Controller
     public function index()
     {
         $multimedia = Multimedia::with('user')->get();
+
+        // Iterar per cada item i afegir el fitxer en base64
+        $multimedia->map(function ($item) {
+            // Llegir el fitxer del sistema de fitxers local
+            $filePath = storage_path("app/public/{$item->file_path}");
+
+            // Comprovar si el fitxer existeix
+            if (file_exists($filePath)) {
+                // Llegir el contingut i convertir-lo a base64
+                $fileData = file_get_contents($filePath);
+                $item->file_path = base64_encode($fileData);
+            }
+            return $item;
+        });
+
         return response()->json($multimedia);
     }
 
-
-
-    // Veure els continguts multimèdia d'un usuari en concret
     public function showByUser()
     {
         // Obtenir l'usuari autenticat
@@ -58,8 +70,23 @@ class ApiMultimediaController extends Controller
         // Recuperar els fitxers de l'usuari autenticat
         $multimedia = Multimedia::where('user_id', $user->id)->get();
 
+        // Iterar per cada item i afegir el fitxer en base64
+        $multimedia->map(function ($item) {
+            // Llegir el fitxer del sistema de fitxers local
+            $filePath = storage_path("app/public/{$item->file_path}");
+
+            // Comprovar si el fitxer existeix
+            if (file_exists($filePath)) {
+                // Llegir el contingut i convertir-lo a base64
+                $fileData = file_get_contents($filePath);
+                $item->file_path = base64_encode($fileData);
+            }
+            return $item;
+        });
+
         return response()->json($multimedia);
     }
+
 
     // Eliminar un contingut multimèdia (només si és de l'usuari)
     public function destroy($id)
