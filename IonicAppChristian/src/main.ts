@@ -10,3 +10,6 @@ const app = createApp(App);
 app.use(IonicVue);
 app.use(router);
 app.mount('#app');
+
+
+
