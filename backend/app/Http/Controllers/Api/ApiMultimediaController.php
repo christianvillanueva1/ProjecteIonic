@@ -17,20 +17,28 @@ class ApiMultimediaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:jpeg,jpg,png,gif,mp4,mkv,avi|max:10240', // Accepta fitxers fins a 10MB
+            'file' => 'required|file|max:10240', // 10MB màxim
         ]);
 
         $file = $request->file('file');
-        $path = $file->storeAs('multimedia', Str::random(40) . '.' . $file->getClientOriginalExtension()); // Emmagatzema el fitxer amb un nom aleatori
+        $fileData = file_get_contents($file->getRealPath());
 
         $multimedia = Multimedia::create([
             'user_id' => Auth::id(),
-            'file_path' => $path,
             'file_type' => $file->getClientMimeType(),
+            'file_path' => base64_encode($fileData),
         ]);
 
-        return response()->json(['message' => 'Multimedia created successfully', 'data' => $multimedia], 201);
+        return response()->json([
+            'message' => 'Multimedia created successfully',
+            'data' => [
+                'id' => $multimedia->id,
+                'file_type' => $multimedia->file_type,
+                'user_id' => $multimedia->user_id,
+            ]
+        ], 201);
     }
+
 
     // Veure tots els continguts multimèdia
     public function index()
@@ -38,6 +46,8 @@ class ApiMultimediaController extends Controller
         $multimedia = Multimedia::with('user')->get();
         return response()->json($multimedia);
     }
+
+
 
     // Veure els continguts multimèdia d'un usuari en concret
     public function showByUser()

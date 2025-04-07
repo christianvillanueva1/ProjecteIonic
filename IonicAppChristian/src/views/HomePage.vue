@@ -17,8 +17,9 @@
           <ion-col size="6" size-sm="4" size-md="3" v-for="(item, index) in multimedia" :key="index">
             <ion-card class="media-card">
               <ion-card-header>
-                <ion-card-title>{{ item.file_path }}</ion-card-title>
+                <img :src="getPreviewSrc(item)" alt="Previsualització" />
               </ion-card-header>
+
               <!-- Imatge de l'usuari en un cercle i el seu nom -->
               <ion-card-footer>
                 <ion-item lines="none">
@@ -93,6 +94,20 @@ const goToUploadPage = () => {
     window.location.reload();  // Forçar recàrrega
   });
 };
+
+import videoIcon from '@/assets/video.png';
+import documentIcon from '@/assets/docs.png';
+const getPreviewSrc = (item) => {
+  console.log(item);
+  if (item.file_type.startsWith('image/')) {
+    return `data:image/jpeg;base64,${item.file_path}`;
+  } else if (item.file_type.startsWith('video/')) {
+    return videoIcon;
+  } else {
+    return documentIcon;
+  }
+};
+
 
 // Carregar la llista d'arxius en muntar la pàgina
 onMounted(getMultimedia);

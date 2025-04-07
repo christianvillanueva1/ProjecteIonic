@@ -64,9 +64,11 @@ const checkToken = async () => {
     }
   } else {
     // Si no hi ha token, redirigim a login
-    router.push('/login').then(() => {
-      window.location.reload();  // Forçar recàrrega
-    });
+    if (router.currentRoute.value.path !== '/login') {
+      router.push('/login').then(() => {
+        window.location.reload();  // Forçar recàrrega
+      });
+    }
   }
 };
 

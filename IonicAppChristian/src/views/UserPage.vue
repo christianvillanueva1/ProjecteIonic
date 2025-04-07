@@ -1,6 +1,6 @@
 <template>
   <ion-page>
-    <Navbar title="Perfil d'Usuari" />
+    <Navbar title="Perfil d'Usuari"/>
 
     <ion-content>
       <!-- Botó per tancar sessió -->
@@ -12,7 +12,9 @@
       <ion-list class="file-list">
         <ion-item v-for="(item, index) in userFiles" :key="index" class="file-item">
           <ion-label>
-            <h2 class="file-title">{{ item.file_path }}</h2>
+            <ion-card-header>
+              <img :src="getPreviewSrc(item)" alt="Previsualització"/>
+            </ion-card-header>
             <p class="file-date">Creat: {{ formatDate(item.created_at) }}</p>
             <p class="file-date">Modificat: {{ formatDate(item.updated_at) }}</p>
           </ion-label>
@@ -22,14 +24,14 @@
         </ion-item>
       </ion-list>
 
-      <Footer />
+      <Footer/>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import {ref, onMounted} from 'vue';
+import {useRouter} from 'vue-router';
 import api from '../services/api';
 import Navbar from '../components/Navbar.vue';
 import Footer from '../components/Footer.vue';
@@ -56,8 +58,10 @@ const formatDate = (dateString) => {
 // Funció per tancar sessió
 const logout = async () => {
   try {
-    await useAuth().logout(); // Dependrà de com hagis implementat l'autenticació
-    router.push('/login'); // Redirigeix a la pàgina de login
+    localStorage.removeItem('token');
+    router.push('/login').then(() => {
+      window.location.reload();  // Forçar recàrrega
+    }); // Redirigeix a la pàgina de login
   } catch (error) {
     console.error('Error logging out:', error);
   }
@@ -74,11 +78,35 @@ const deleteFile = async (fileId) => {
   }
 };
 
+import videoIcon from '@/assets/video.png';
+import documentIcon from '@/assets/docs.png';
+
+const getPreviewSrc = (item) => {
+  console.log(item);
+  if (item.file_type.startsWith('image/')) {
+    return `data:image/jpeg;base64,${item.file_path}`;
+  } else if (item.file_type.startsWith('video/')) {
+    return videoIcon;
+  } else {
+    return documentIcon;
+  }
+};
+
+
 // Carregar els fitxers de l'usuari al muntar la pàgina
 onMounted(getUserFiles);
 </script>
 
 <style scoped>
+
+ion-label{
+  display: flex;
+  flex-direction: column;
+
+  img{
+    width: 100px;
+  }
+}
 ion-content {
   --background: #f9fafb;
   padding-bottom: 80px; /* Espai per als botons */
